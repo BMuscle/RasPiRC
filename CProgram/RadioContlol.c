@@ -52,6 +52,7 @@ void ALLOFF(void){
 
 ---------------------------------------*/
 void threadRC(void) {
+	printf("rcthread");
     int flag = 1;
     RasPi_initialize();//ラズパイ初期化
 	while (flag) {
@@ -98,6 +99,7 @@ void threadRC(void) {
 }
 
 int recvState(int sock){
+	printf("sendImage\n");
     char buf = 0;
     int n = 0;
     
@@ -105,10 +107,8 @@ int recvState(int sock){
 	if((n = recv(sock,&buf, sizeof(buf),0)) < 1){
 		return -1;
 	}
-	printf("n == %d buf = %c \n",n,buf);
 	setState((int)buf);
 	printf("state == %d\n",(int)state);
-	printf("state == %c\n",state);
 	return 1;
 }
 int getState(void){
@@ -122,6 +122,7 @@ void setState(int s){
 
 void threadRCServer(void){
 	while(1){
+		printf("RCserver");
 		serverTCP(RCPORT,recvState);
 	}
 }

@@ -24,6 +24,7 @@ void Camera_Shooting(void){
 	戻り値：なし
 ---------------------------------------- */
 void threadCamera(void){
+	printf("camera");
 	serverTCP(CAMERAPORT,sendCamera);
 }
 
@@ -36,10 +37,12 @@ int sendCamera(int sock){
 			exit(1);
 		}
 		printf("send file");//送信処理
+		fflush(stdout);
 		while ((fread(&imbuf, sizeof(imbuf), 1, file)) > 0) {
 			send(sock, &imbuf, sizeof(imbuf),0);
 		}
 		printf("close");
+		fflush(stdout);
 		fclose(file);//ファイルディスクリプタを閉じる
 		return 1;
 }
