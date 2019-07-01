@@ -1,3 +1,3 @@
 #pragma once
-//void Server(void);
+void Server(void);
 void Client(void);

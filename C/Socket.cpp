@@ -9,16 +9,11 @@
 #pragma warning(disable: 4996)
 #pragma comment(lib,"ws2_32.lib")
 
-#define WIDTH 5
-#define HIGHT 5
-#define COLORBIT 3
-
-#define SIZE 90000
-
-#define UINTSIZE 10
 
 #define PORT 55556
-/*
+
+#define BUFSIZE 1024
+
 void Server(void) {
 
 	WSADATA wsadata;//設定を保存　構造体
@@ -32,12 +27,12 @@ void Server(void) {
 	FILE* fp2;
 	FILE* sendfile;
 
-	char buf[256];
+	char buf[BUFSIZE];
 	char c;
 	int len;
 	char filepath[] = { "1.jpg" };
 	
-
+	/*
 	//ファイルオープン
 	if ((fp = fopen(filepath, "rb")) == NULL) {
 		printf("fileopen error\n");
@@ -45,13 +40,15 @@ void Server(void) {
 	}
 	fp2 = fopen("tmp.jpg", "wb");
 	//ファイル出力テスト
-
-	while (fread(&c, sizeof(c), 1, fp) != NULL) {
-		fwrite(&c, sizeof(c), 1, fp2);
+	
+	memset(buf, 0, sizeof(buf));
+	while (fread(buf, sizeof(buf), 1, fp) != NULL) {
+		fwrite(buf, sizeof(buf), 1, fp2);
 	}
 	printf("出力官僚");
 	fclose(fp);
 	fclose(fp2);
+	*/
 
 
 
@@ -86,32 +83,49 @@ void Server(void) {
 		len = sizeof(client);
 		sock = accept(m_sock, (struct sockaddr*) & client, &len);
 		
-		//send(sock, (char*)image->data->r,sizeof(image->data), 0);
 		
-			//ファイルオープン
+		//ファイルオープン
 		if ((sendfile = fopen(filepath, "rb")) == NULL) {
 			printf("fileopen error\n");
 			exit(EXIT_FAILURE);//エラー
 		}
 		//ファイル出力テスト
-
+		printf("出力");
+		fflush(stdout);
+		memset(buf, 0, sizeof(buf));
+		int len;
+		int i = 0;
+		while (len = fread(buf, sizeof(buf[0]), sizeof(buf), sendfile) != 0) {
+			send(sock, buf, sizeof(buf), 0);
+			printf("%d,", len);
+		}
+		printf("%d",ferror(sendfile));
+		
+		
+		/*
 		while (fread(&c, sizeof(c), 1, sendfile) != NULL) {
 			send(sock, &c, sizeof(c), 0);
 		}
+		*/
+		
+		
 		fclose(sendfile);
-		printf("出力");
+
+		printf("完了\n");
 		
 		closesocket(sock);
 	}
+	closesocket(m_sock);
 
 	WSACleanup();//消す
 }
-*/
+
 
 void Client(void) {
 	WSADATA wsaData;
 	struct sockaddr_in server;
 	SOCKET sock;
+	char buf[BUFSIZE];
 
 	unsigned int wi = 0, hi = 0;
 	
@@ -126,7 +140,7 @@ void Client(void) {
 	server.sin_family = AF_INET;
 	server.sin_port = htons(55556);
 
-	server.sin_addr.S_un.S_addr = inet_addr("192.168.0.40");
+	server.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 
 	printf("サーバーへ接続");
 	//サーバーに接続
@@ -149,17 +163,22 @@ void Client(void) {
 		printf("ファイル受信開始");
 		int e = 1;
 		int i = 0;
+		memset(buf, 0, sizeof(buf));
 		while (e) {
-			switch (recv(sock, &c, sizeof(c), 0)) {
+			switch (i = recv(sock, buf, sizeof(buf), 0)) {
+			
+			//switch (recv(sock, &c, sizeof(c), 0)) {
 			case -1:
 				printf("erroer %d",WSAGetLastError());
 				e = 0;
 				break; 
 			case 0:
+				printf("0");
 				e = 0;
 				break;
 			default:
-				fwrite(&c, sizeof(c), 1, readfile);
+				fwrite(buf, sizeof(buf[0]), i, readfile);
+				//fwrite(&c, sizeof(c), 1, readfile);
 			}
 		}
 		

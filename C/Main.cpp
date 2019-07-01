@@ -6,9 +6,11 @@
 using namespace std;
 int main(void) {
 	try {
-		std::thread client(Client);
+		std::thread server(Server);
+		//std::thread client(Client);
 
-		client.join();
+		server.join();
+		//client.join();
 		
 	}
 	catch (std::exception& ex) {
