@@ -1,24 +1,18 @@
 package com.example.piclient;
 
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.widget.ImageView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.Arrays;
-import java.net.*;
 
 import static android.content.Context.MODE_PRIVATE;
 import static java.lang.Thread.sleep;
 
 public class Camera implements Runnable{
-   // private String HOST = "192.168.0.40";
-   private String HOST = "10.0.2.2";
+    private String HOST = "192.168.0.40";
+   //private String HOST = "10.0.2.2";
     private int PORT = 55556;
     ImageView im;
 
@@ -33,8 +27,9 @@ public class Camera implements Runnable{
             sock();
             try {
                 Bitmap bmp = BitmapFactory.decodeFile("/data/data/com.example.piclient/files/img.jpg");
+                im.setImageBitmap(null);
                 im.setImageBitmap(bmp);
-
+                im.invalidate();
             }catch(Exception e){
 
             }
@@ -44,31 +39,29 @@ public class Camera implements Runnable{
 
         //ソケット通信用の変数です．サーバ側と同じくソケットクラス，バッファへの読み書きクラスです．
         java.net.Socket sc2;
-        byte[] bi = new byte[1024];
+        byte[] bi = new byte[4096];
         System.out.println("カメラ受信開始");
 
         try{
             //ここでサーバへ接続されます
             sc2 = new java.net.Socket(HOST,PORT);
-
             BufferedInputStream in = new BufferedInputStream(sc2.getInputStream());
             BufferedOutputStream bout = new BufferedOutputStream(MainActivity.getInstance().openFileOutput("img.jpg",MODE_PRIVATE));
-            System.out.println("データ受信");
-            int len = 0;
-            while((len = in.read(bi)) > 0){
-                    bout.write(bi,0,len);
-                System.out.println(len);
+            System.out.println("カメラデータ受信");
+            int len ;
+            int i = 0;
+            while((len = in.read(bi,0,1024)) > 0){//i=190464
+                    bout.write(bi, 0, len);
+                    i += len;
             }
             System.out.println(len);
+            System.out.println("i="+i);//とりあえず現時点では送信側が早くにソケット閉じてしまっている
 
             in.close();
             bout.close();
-
-
-
             //ソケット閉鎖
-           sc2.close();
-            System.out.println("ソケット閉鎖");
+            sc2.close();
+            System.out.println("カメラソケット閉鎖");
 
         }catch(Exception ex) {
             System.out.print("エラー");
