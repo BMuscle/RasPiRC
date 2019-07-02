@@ -1,10 +1,13 @@
 #include "camera.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 
-#define CAMERACOM "raspistill -w 1920 -h 1080 -q 100 -t 20 -o camera.jpg"
+#define CAMERACOM "raspistill -w 640 -h 480 -q 50 -t 1 -o camera.jpg"
 #define CAMERAPORT 55556
+
+#define BUFSIZE 4096
 
 int sendCamera(int sock);
 /*---------------------------------------
@@ -31,18 +34,15 @@ void threadCamera(void){
 int sendCamera(int sock){
 		Camera_Shooting();
 		FILE *file;//ファイルディスクリプタ
-		char imbuf = 0;//ファイル送信用バッファ
+		char buf[BUFSIZE];
 		if((file = fopen("camera.jpg", "rb")) == NULL){//ファイルを開く
 			perror("not open file");//ファイルが開けなかった場合
 			exit(1);
 		}
-		printf("send file");//送信処理
-		fflush(stdout);
-		while ((fread(&imbuf, sizeof(imbuf), 1, file)) > 0) {
-			send(sock, &imbuf, sizeof(imbuf),0);
+		memset(buf,0,sizeof(buf));
+		while(fread(buf,sizeof(buf[0]), sizeof(buf),file) > 0){
+			send(sock,buf,sizeof(buf),0);
 		}
-		printf("close");
-		fflush(stdout);
 		fclose(file);//ファイルディスクリプタを閉じる
 		return 1;
 }
