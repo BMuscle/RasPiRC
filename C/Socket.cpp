@@ -63,7 +63,7 @@ void Server(void) {
 		printf("error : %d\n",WSAGetLastError());//最後に起きたエラーコード表示
 		return;
 	}
-
+	
 	//ソケットの設定
 	addr.sin_family = AF_INET;//IPv4指定
 	addr.sin_port = htons(PORT);//ポート番号指定 ビッグエンディアン変換
@@ -98,7 +98,9 @@ void Server(void) {
 		while (len = fread(buf, sizeof(buf[0]), sizeof(buf), sendfile) != 0) {
 			send(sock, buf, sizeof(buf), 0);
 			printf("%d,", len);
+			i++;
 		}
+		printf("\ni = %d\n", i);
 		printf("%d",ferror(sendfile));
 		
 		
@@ -107,12 +109,15 @@ void Server(void) {
 			send(sock, &c, sizeof(c), 0);
 		}
 		*/
+
+		//shutdown(sock, SD_SEND);
 		
+		Sleep(100);
+
 		
 		fclose(sendfile);
 
 		printf("完了\n");
-		
 		closesocket(sock);
 	}
 	closesocket(m_sock);
@@ -167,7 +172,6 @@ void Client(void) {
 		while (e) {
 			switch (i = recv(sock, buf, sizeof(buf), 0)) {
 			
-			//switch (recv(sock, &c, sizeof(c), 0)) {
 			case -1:
 				printf("erroer %d",WSAGetLastError());
 				e = 0;
@@ -178,9 +182,9 @@ void Client(void) {
 				break;
 			default:
 				fwrite(buf, sizeof(buf[0]), i, readfile);
-				//fwrite(&c, sizeof(c), 1, readfile);
 			}
 		}
+
 		
 
 		fclose(readfile);
