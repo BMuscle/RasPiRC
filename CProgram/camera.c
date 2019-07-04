@@ -3,13 +3,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <time.h>
 
-#define CAMERACOM "raspistill -w 640 -h 480 -q 50 -t 1 -o camera.jpg"
+#define CAMERACOM "raspistill -w 640 -h 480 -q 20 -t 1 -o camera.jpg"
 #define CAMERAPORT 55556
 
-#define BUFSIZE 4096
+#define BUFSIZE 65535
+
+FILE *file;//ファイルディスクリプタ
 
 int sendCamera(int sock);
+char buf[BUFSIZE];
+
+
 /*---------------------------------------
 	関数名：Camera_Initialize()
 	機　能：カメラクラスの初期化
@@ -28,13 +34,12 @@ void Camera_Shooting(void){
 ---------------------------------------- */
 void threadCamera(void){
 	printf("camera");
+	memset(buf,0,sizeof(buf));
 	serverTCP(CAMERAPORT,sendCamera);
 }
 
 int sendCamera(int sock){
 		Camera_Shooting();
-		FILE *file;//ファイルディスクリプタ
-		char buf[BUFSIZE];
 		if((file = fopen("camera.jpg", "rb")) == NULL){//ファイルを開く
 			perror("not open file");//ファイルが開けなかった場合
 			exit(1);
