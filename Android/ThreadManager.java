@@ -7,11 +7,11 @@ import java.util.concurrent.Executors;
 public class ThreadManager
 {
 
-    private ExecutorService sockexec;
+    private ExecutorService sockexec;//スレッドプール
     public ThreadManager(int maxthread){
         sockexec = Executors.newFixedThreadPool(maxthread);
     }
-    public void Submit_Thread(SocketClient s){
+    public void submitThread(Control s){
         System.out.println("スレッド起動");
         sockexec.submit(s);
     }

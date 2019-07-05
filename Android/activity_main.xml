@@ -119,6 +119,12 @@
                 android:text="backward" />
         </LinearLayout>
 
+        <Switch
+            android:id="@+id/connectswitch"
+            android:layout_width="match_parent"
+            android:layout_height="46dp"
+            android:text="Connect" />
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"

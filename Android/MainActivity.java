@@ -1,5 +1,7 @@
 package com.example.piclient;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,7 +11,7 @@ import android.widget.ImageView;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     ThreadManager tm;
     Camera camera;
-    ImageView im;
+    static ImageView im;
 
     private static MainActivity instance = null;
     Thread th;
@@ -19,7 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         instance = this;
-        tm = new ThreadManager(1);
+        tm = new ThreadManager(1);//スレッドプール　サイズ１で稼働
 
         //リスナの登録
         findViewById(R.id.forwardbt).setOnClickListener(this);
@@ -30,17 +32,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.rightdownbt).setOnClickListener(this);
         findViewById(R.id.stopbt).setOnClickListener(this);
         //カメラスレッド作成起動
+
         im = findViewById(R.id.imageView);
 
-        camera = new Camera(im);
+        camera = new Camera();
         th = new Thread(camera);
         th.start();
-
-
-
-
-
-
     }
 
 
@@ -49,36 +46,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(v != null){
             switch (v.getId()){
                 case R.id.forwardbt://前進処理
-                    tm.Submit_Thread(new SocketClient(3,1));
+                    tm.submitThread(new Control(3,1));
                     break;
                 case R.id.backwardbt://後退処理
-                    tm.Submit_Thread(new SocketClient(3,2));
+                    tm.submitThread(new Control(3,2));
                     break;
                 case R.id.leftupbt://左の履帯前回転
-                    tm.Submit_Thread(new SocketClient(2,1));
+                    tm.submitThread(new Control(2,1));
                     break;
                 case R.id.leftdownbt://左の履帯後回転
-                    tm.Submit_Thread(new SocketClient(2,2));
+                    tm.submitThread(new Control(2,2));
                     break;
                 case R.id.rightupbt://右の履帯前回転
-                    tm.Submit_Thread(new SocketClient(1,1));
+                    tm.submitThread(new Control(1,1));
                     break;
                 case R.id.rightdownbt://右の履帯後回転
-                    tm.Submit_Thread(new SocketClient(1,2));
+                    tm.submitThread(new Control(1,2));
                     break;
                 case R.id.stopbt://停止
-                    tm.Submit_Thread(new SocketClient(3,0));
-
+                    tm.submitThread(new Control(3,0));
                     break;
-
             }
-
-
         }
     }
     public static MainActivity getInstance(){
         return instance;
     }
 
-
+    public static void updateImage(String pathname) {//画像更新
+        Bitmap bmp = BitmapFactory.decodeFile(pathname);
+        im.setImageBitmap(null);
+        im.setImageBitmap(bmp);
+        im.invalidate();
+    }
 }
