@@ -1,3 +1,4 @@
+#include "Socket.h"
 #include <stdio.h>//fprintf(),printf(),perror()
 #include <stdlib.h>
 #include <sys/types.h>
@@ -5,8 +6,6 @@
 #include <netinet/in.h>
 #include <errno.h>//error
 #include <unistd.h>
-#include "Socket.h"
-#include "camera.h"
 
 
 //サーバー関係のマクロ
@@ -14,7 +13,6 @@
 #define IP "192.168.0.40"
 //接続要求の受付数
 #define MAXPENDING 5
-#define BUFFERSIZE 1024
 /*-------------------------------------------
  * 	メモ　将来的には数値だけをやり取りする
  * 
@@ -24,9 +22,6 @@
 
 int par = 0;
 int state = 0;
-
-
-
 
 /*--------------------
 	scokaddr_inの中身

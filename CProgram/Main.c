@@ -1,7 +1,5 @@
 #include "Socket.h"
-#include "Socket.c"
-#include "camera.c"
-#include "RadioContlol.c"
+#include "camera.h"
 #include "RadioContlol.h"
 #include <pthread.h>
 #include <string.h>
@@ -11,16 +9,20 @@
 #include <errno.h>
 #include <unistd.h>
 #include <pigpiod_if2.h>
+//build 
+#include "camera.c"
+#include "RadioContlol.c"
+#include "Socket.c"
 
 
 pthread_t th1, th2, th3;
 int ret1, ret2, ret3;
 
-
 /*---------------------------------------------------------
  * 	prottype
  * --------------------------------------------------------*/
 void threadManager(void);
+
 	
 int main(void)
 {

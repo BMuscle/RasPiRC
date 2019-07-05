@@ -1,20 +1,22 @@
 #include "camera.h"
+
+#include "Socket.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <time.h>
 
-#define CAMERACOM "raspistill -w 640 -h 480 -q 20 -t 1 -o camera.jpg"
+
+#define CAMERACOM "raspistill -w 640 -h 480 -q 40 -t 1 -o camera.jpg"
 #define CAMERAPORT 55556
 
-#define BUFSIZE 65535
+#define BUFSIZE 131070
 
 FILE *file;//ファイルディスクリプタ
 
 int sendCamera(int sock);
-char buf[BUFSIZE];
-
+char *buf;
 
 /*---------------------------------------
 	関数名：Camera_Initialize()
@@ -34,8 +36,10 @@ void Camera_Shooting(void){
 ---------------------------------------- */
 void threadCamera(void){
 	printf("camera");
-	memset(buf,0,sizeof(buf));
+	buf = (char*)malloc(sizeof(char)*BUFSIZE);
+	memset(buf,0,sizeof(*buf)*BUFSIZE);
 	serverTCP(CAMERAPORT,sendCamera);
+	free(buf);
 }
 
 int sendCamera(int sock){
@@ -44,7 +48,7 @@ int sendCamera(int sock){
 			perror("not open file");//ファイルが開けなかった場合
 			exit(1);
 		}
-		memset(buf,0,sizeof(buf));
+		memset(buf,0,sizeof(*buf)*BUFSIZE);
 		while(fread(buf,sizeof(buf[0]), sizeof(buf),file) > 0){
 			send(sock,buf,sizeof(buf),0);
 		}

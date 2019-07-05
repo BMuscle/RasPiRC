@@ -1,5 +1,16 @@
 #include "RadioContlol.h"
 
+#include "Socket.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <err.h>
+#include <errno.h>
+#include <unistd.h>
+#include <pigpiod_if2.h>
+
 #define RCPORT 55555
 //左
 #define MOTER1UP 23
@@ -56,7 +67,7 @@ void threadRC(void) {
     int flag = 1;
     RasPi_initialize();//ラズパイ初期化
 	while (flag) {
-		usleep(10);
+		usleep(100);
 		int st = getState();
 		int val = (st & 0x3);
 		//左の処理
@@ -102,8 +113,6 @@ int recvState(int sock){
 	printf("sendImage\n");
     char buf = 0;
     int n = 0;
-    
-    
 	if((n = recv(sock,&buf, sizeof(buf),0)) < 1){
 		return -1;
 	}
