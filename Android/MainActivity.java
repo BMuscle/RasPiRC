@@ -1,27 +1,42 @@
 package com.example.piclient;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
+import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-    ThreadManager tm;
-    Camera camera;
-    static ImageView im;
-
     private static MainActivity instance = null;
-    Thread th;
+    private static Context context;
+    private static Handler handler;
+
+    private Message msg;
+    private ThreadManager tm;
+    private Camera camera;
+    private ImageView im;
+    private Switch s;
+    private Thread camth;
+    private Bitmap bmp;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        instance = this;
+        context = getApplicationContext();
+        instance = this;//getinstans用インスタンス保持
         tm = new ThreadManager(1);//スレッドプール　サイズ１で稼働
+        camth = new Thread(camera = new Camera());//カメラスレッド作成
 
         //リスナの登録
         findViewById(R.id.forwardbt).setOnClickListener(this);
@@ -31,19 +46,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.rightupbt).setOnClickListener(this);
         findViewById(R.id.rightdownbt).setOnClickListener(this);
         findViewById(R.id.stopbt).setOnClickListener(this);
-        //カメラスレッド作成起動
-
+        s = findViewById(R.id.connectswitch);
+        s.setOnCheckedChangeListener(new SwitchListener());
         im = findViewById(R.id.imageView);
 
-        camera = new Camera();
-        th = new Thread(camera);
-        th.start();
+        handler = new Handler(){//UIに関する処理が別スレッドから投げられる場合ここへ
+            //メッセージ受信
+            public void handleMessage(Message message) {
+                switch (message.what) {
+                    case 0:
+                        break;
+                    case 1://オフスイッチ起動
+                        offSwitch();
+                        break;
+                    case 2:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
     }
 
 
     @Override
     public void onClick(View v) {
-        if(v != null){
+        if(v != null && camth.isAlive()){
             switch (v.getId()){
                 case R.id.forwardbt://前進処理
                     tm.submitThread(new Control(3,1));
@@ -69,14 +97,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
     public static MainActivity getInstance(){
         return instance;
     }
 
-    public static void updateImage(String pathname) {//画像更新
-        Bitmap bmp = BitmapFactory.decodeFile(pathname);
-        im.setImageBitmap(null);
+    public void sendMsg(int what){//ハンドラへメッセージを投げイベントを起こす
+        msg = new Message();
+        msg.what = what;
+        handler.sendMessage(msg);
+    }
+
+    public void updateImage(String pathname) {//画像更新
+        bmp = BitmapFactory.decodeFile(pathname);
+        //機体的にカメラがまっすぐ無理だったので回転
         im.setImageBitmap(bmp);
         im.invalidate();
     }
+
+    private void offSwitch(){
+        s.setChecked(false);
+        Toast.makeText(context, "コネクションエラー", Toast.LENGTH_SHORT).show();
+    }
+    class SwitchListener implements CompoundButton.OnCheckedChangeListener {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (isChecked) {//スイッチの状態がオンに変更された時
+                camth = new Thread(camera = new Camera());//カメラスレッド作成
+                Toast.makeText(context, "コネクション開始", Toast.LENGTH_SHORT).show();
+                //カメラスレッド起動
+                camth.start();
+            }else{//スイッチの状態がオフに変更された時
+                if(camera != null) {
+                    camera.stopSocket();//スレッドを停止させる
+                    Toast.makeText(context, "コネクション切断しました", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 }
+

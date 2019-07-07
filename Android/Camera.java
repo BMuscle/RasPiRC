@@ -13,30 +13,36 @@ public class Camera implements Runnable{
     private BufferedOutputStream out;//ファイル出力用
 
     private final String basepath = "/data/data/com.example.piclient/files/";
-    private final String imgname = "CapImg";
+    private final String imgname = "CapImg.jpg";
     private final int BUFSIZE = 131070;//バッファサイズ
+
+    private boolean netflag;
 
 
     public Camera() {
-
+        netflag = true;
     }
 
     @Override
     public void run() {
-        while(true){
+        while(netflag){
             System.out.println("データ受信");
             try {
                 long startTime = System.currentTimeMillis();//処理時間計算用
                 if(sock() == 1) {
                     System.out.println("通信処理時間 = " + (System.currentTimeMillis() - startTime));
-                    ImageClass imgclass = new ImageClass(basepath + imgname + ".jpg");
+                    ImageClass imgclass = new ImageClass(basepath + imgname);
                     imgclass.run();//将来的にスレッド化する予定　わざわざメインアクティビティを呼んでいるのは描画反映を早くするため
                     System.out.println("トータル処理時間 = " + (System.currentTimeMillis() - startTime));
                     System.out.flush();
                 }else{
-                    break;
+                    System.out.println("通信終了");
+                    stopSocket();
+                    MainActivity.getInstance().sendMsg(1);
+                    System.out.println("完了");
                 }
             }catch(Exception e){
+                System.out.println("スレッドエラー" + e);
 
             }
         }
@@ -52,7 +58,7 @@ public class Camera implements Runnable{
             //ここでサーバへ接続されます
             sock = new java.net.Socket(HOST,PORT);//ソケットの作成
             in = new BufferedInputStream(sock.getInputStream());//受信用ストリーム作成
-            out = new BufferedOutputStream(MainActivity.getInstance().openFileOutput(imgname +".jpg", MODE_PRIVATE));//出力用ストリーム作成
+            out = new BufferedOutputStream(MainActivity.getInstance().openFileOutput(imgname, MODE_PRIVATE));//出力用ストリーム作成
             int len;//受信データサイズ
             int i = 0;//受信データトータルサイズ確認用
             while((len = in.read(bi,0,BUFSIZE)) > 0){
@@ -70,13 +76,16 @@ public class Camera implements Runnable{
         }catch(Exception ex) {
             System.out.print("エラー");
             System.out.println(ex);
-            return -1;//異常終了
+            return 0;//異常終了
         }finally {
 
         }
         System.out.println("カメラソケット終了です");
         return 1;//正常終了
 
+    }
+    public void stopSocket(){
+        netflag = false;
     }
 }
 class ImageClass extends Thread
@@ -87,6 +96,6 @@ class ImageClass extends Thread
     }
 
     public void run(){
-        MainActivity.updateImage(pathname);
+        MainActivity.getInstance().updateImage(pathname);
     }
 }
