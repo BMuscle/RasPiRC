@@ -8,7 +8,7 @@
 #include <time.h>
 
 
-#define CAMERACOM "raspistill -w 640 -h 480 -q 40 -t 1 -o camera.jpg"
+#define CAMERACOM "raspistill -w 640 -h 480 -e jpg -q 30 -rot 90 -n -t 1 -o camera.jpg"
 #define CAMERAPORT 55556
 
 #define BUFSIZE 131070
@@ -46,7 +46,7 @@ int sendCamera(int sock){
 		Camera_Shooting();
 		if((file = fopen("camera.jpg", "rb")) == NULL){//ファイルを開く
 			perror("not open file");//ファイルが開けなかった場合
-			exit(1);
+			return -1;
 		}
 		memset(buf,0,sizeof(*buf)*BUFSIZE);
 		while(fread(buf,sizeof(buf[0]), sizeof(buf),file) > 0){
@@ -54,4 +54,5 @@ int sendCamera(int sock){
 		}
 		fclose(file);//ファイルディスクリプタを閉じる
 		return 1;
+		
 }
